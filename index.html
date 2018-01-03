@@ -81,26 +81,21 @@
 
     <script type="text/babel">
     const TOGGLE_CONTEXT = "__TOGGLE__";
-    function ToggleOn({children}, context) {
-      const {on} = context[TOGGLE_CONTEXT];
-      return on ? children : null;
-    }
-    ToggleOn.contextTypes = {
-      [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
-    };
-    function ToggleOff({children}, context) {
-      const {on} = context[TOGGLE_CONTEXT];
-      return on ? null : children;
-    }
-    ToggleOff.contextTypes = {
-      [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
-    };
-    function ToggleButton({...props}, context) {
-      const {on, toggle} = context[TOGGLE_CONTEXT];
+    const ToggleOn = withToggle(({children, on}) => {
+      return on ? children : null
+    });
+    const ToggleOff = withToggle(({children, on}) => {
+      return on ? null : children
+    });
+    const ToggleButton = withToggle(({on, toggle, ...props}) => {
       return (
-        <Switch on={on} onClick={toggle} {...props} />
+        <Switch
+            on={on}
+            onClick={toggle}
+            {...props}
+        />
       );
-    }
+    });
     ToggleButton.contextTypes = {
       [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
     };
@@ -134,6 +129,23 @@
         );
       }
     }
+    function withToggle(Component) {
+      function Wrapper(props, context) {
+        const toggleContext = context[TOGGLE_CONTEXT];
+        return (
+          <Component {...toggleContext} {...props} />
+        );
+      }
+      Wrapper.contextTypes = {
+        [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
+      };
+      return Wrapper;
+    }
+    const MyToggle = withToggle(({on, toggle}) => (
+      <button onClick={toggle}>
+        {on ? 'on' : 'off'}
+      </button>
+    ));
     function App() {
       return (
         <Toggle
@@ -144,6 +156,8 @@
           </div>
           <Toggle.Off>The button is off</Toggle.Off>
           <Toggle.Button />
+          <hr/>
+          <MyToggle />
         </Toggle>
       )
     }
