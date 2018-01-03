@@ -74,27 +74,52 @@
     </style>
     <script src="https://unpkg.com/react@16.0.0/umd/react.development.js"></script>
     <script src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/prop-types@15.6.0/prop-types.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
 
     <div id="⚛️"></div>
 
     <script type="text/babel">
-    function ToggleOn({on, children}) {
-        return on ? children : null;
+    const TOGGLE_CONTEXT = "__TOGGLE__";
+    function ToggleOn({children}, context) {
+      const {on} = context[TOGGLE_CONTEXT];
+      return on ? children : null;
     }
-    function ToggleOff({on, children}) {
-        return on ? null : children;
+    ToggleOn.contextTypes = {
+      [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
+    };
+    function ToggleOff({children}, context) {
+      const {on} = context[TOGGLE_CONTEXT];
+      return on ? null : children;
     }
-    function ToggleButton({on, toggle, ...props}) {
-        return (
-            <Switch on={on} onClick={toggle} {...props} />
-        );
+    ToggleOff.contextTypes = {
+      [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
+    };
+    function ToggleButton({...props}, context) {
+      const {on, toggle} = context[TOGGLE_CONTEXT];
+      return (
+        <Switch on={on} onClick={toggle} {...props} />
+      );
     }
+    ToggleButton.contextTypes = {
+      [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
+    };
     class Toggle extends React.Component {
       static On = ToggleOn;
       static Off = ToggleOff;
       static Button = ToggleButton;
       static defaultProps = {onToggle: () => {}};
+      static childContextTypes = {
+        [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
+      };
+      getChildContext() {
+        return {
+          [TOGGLE_CONTEXT]: {
+            on: this.state.on,
+            toggle: this.toggle,
+          }
+        };
+      }
       state = {on: false};
       toggle = () =>
         this.setState(
@@ -104,16 +129,8 @@
           },
         );
       render() {
-        const children = React.Children.map(
-          this.props.children,
-          child => React.cloneElement(child, {
-            on: this.state.on,
-            toggle: this.toggle,
-          }),
-        );
-
         return (
-          <div>{children}</div>
+          <div>{this.props.children}</div>
         );
       }
     }
@@ -122,7 +139,9 @@
         <Toggle
           onToggle={on => console.log('toggle', on)}
         >
+          <div>
           <Toggle.On>The button is on</Toggle.On>
+          </div>
           <Toggle.Off>The button is off</Toggle.Off>
           <Toggle.Button />
         </Toggle>
