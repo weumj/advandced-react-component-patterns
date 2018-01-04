@@ -76,6 +76,7 @@
     <script src="https://unpkg.com/react-dom@16.0.0/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/prop-types@15.6.0/prop-types.js"></script>
     <script src="https://unpkg.com/babel-standalone@6.26.0/babel.js"></script>
+    <script src="https://cdn.rawgit.com/kentcdodds/ea2fdfc82f79228a6be641c78dc0e1b9/raw/0f792eb8dfb3bf993bdf50c9656f12090ed344e6/hoist-non-react-statics.umd.js"></script>
 
     <div id="⚛️"></div>
 
@@ -141,10 +142,16 @@
       };
       Wrapper.displayName = `withToggle(${Component.displayName || Component.name})`;
       Wrapper.WrappedComponent = Component;
-      return Wrapper;
+      return hoistNonReactStatics(Wrapper, Component);
     }
 
     class MyToggle extends React.Component {
+      static ToggleMessage = withToggle(
+        ({toggle: {on}}) =>
+          on
+            ? 'Warning: The button is toggled on'
+            : null,
+      );
       focus = () => this.button.focus();
       render() {
         const {toggle: {on, toggle}} = this.props;
@@ -185,6 +192,7 @@
                 event="onClick"
                 on={e => alert(e.type)}
               />
+              <MyToggleWrapper.ToggleMessage />
           </Toggle>
         )
       }
