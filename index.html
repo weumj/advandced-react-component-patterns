@@ -81,13 +81,13 @@
 
     <script type="text/babel">
     const TOGGLE_CONTEXT = "__TOGGLE__";
-    const ToggleOn = withToggle(({children, toggle:{on}}) => {
+    const ToggleOn = ({children, toggle:{on}}) => {
       return on ? children : null
-    });
-    const ToggleOff = withToggle(({children, toggle: {on}}) => {
+    };
+    const ToggleOff = ({children, toggle: {on}}) => {
       return on ? null : children
-    });
-    const ToggleButton = withToggle(({toggle:{on, toggle}, ...props}) => {
+    };
+    const ToggleButton = ({toggle:{on, toggle}, ...props}) => {
       return (
         <Switch
             on={on}
@@ -95,14 +95,14 @@
             {...props}
         />
       );
-    });
+    };
     ToggleButton.contextTypes = {
       [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
     };
     class Toggle extends React.Component {
-      static On = ToggleOn;
-      static Off = ToggleOff;
-      static Button = ToggleButton;
+      static On = withToggle(ToggleOn);
+      static Off = withToggle(ToggleOff);
+      static Button = withToggle(ToggleButton);
       static defaultProps = {onToggle: () => {}};
       static childContextTypes = {
         [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
@@ -139,16 +139,17 @@
       Wrapper.contextTypes = {
         [TOGGLE_CONTEXT]: PropTypes.object.isRequired,
       };
+      Wrapper.displayName = `withToggle(${Component.displayName || Component.name})`;
       return Wrapper;
     }
 
-    const MyToggle = withToggle(({toggle: {on, toggle}}) => (
+    let MyToggle = withToggle((MyToggle = ({toggle: {on, toggle}}) => (
       <button onClick={toggle}>
         {on ? 'on' : 'off'}
       </button>
-    ));
+    )));
 
-    const MyEventComponent = withToggle(({toggle, on, event}) => {
+    let MyEventComponent = withToggle(MyEventComponent = ({toggle, on, event}) => {
       const props = {[event]: on};
       return (
         toggle.on ? <button {...props}>The {event} event</button> : null
