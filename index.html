@@ -83,9 +83,19 @@
     <script type="text/babel">
       const compose = (...fns) => (...args) =>
         fns.forEach(fn => fn && fn(...args));
+
       class Toggle extends React.Component {
-        static defaultProps = {onToggle: () => {}};
-        state = {on: false};
+        static defaultProps = {
+          defaultOn: false,
+          onToggle: () => {},
+          onReset: () => {},
+        };
+        initialState = {on: this.props.defaultOn};
+        state = this.initialState;
+        reset = () =>
+          this.setState(this.initialState, () =>
+            this.props.onReset(this.state.on),
+          );
         toggle = () =>
           this.setState(
             ({on}) => ({on: !on}),
@@ -93,40 +103,37 @@
           );
         getTogglerProps = (
           {onClick, ...props} = {},
-        ) => {
-          return {
-            'aria-expanded': this.state.on,
-            onClick: compose(onClick, this.toggle),
-            ...props,
-          }
-        };
+        ) => ({
+          onClick: compose(onClick, this.toggle),
+          'aria-expanded': this.state.on,
+          ...props,
+        });
         render() {
           return this.props.render({
             on: this.state.on,
             toggle: this.toggle,
+            reset: this.reset,
             getTogglerProps: this.getTogglerProps,
-          });
+          })
         }
       }
 
       function App() {
         return (
           <Toggle
+            defaultOn={true}
             onToggle={on => console.log('toggle', on)}
-            render={({on, toggle, getTogglerProps}) => (
+            onReset={on => console.log('reset', on)}
+            render={toggle => (
               <div>
                   <Switch
-                    on={on}
-                    {...getTogglerProps()}
+                    {...toggle.getTogglerProps({
+                      on: toggle.on,
+                    })}
                   />
                   <hr />
-                  <button
-                    {...getTogglerProps({
-                      onClick: () => alert('hi'),
-                      id: 'hi',
-                    })}
-                  >
-                    {on ? 'on' : 'off'}
+                  <button onClick={() => toggle.reset()}>
+                      Reset
                   </button>
               </div>
             )}
