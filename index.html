@@ -81,13 +81,13 @@
 
     <script type="text/babel">
     const TOGGLE_CONTEXT = "__TOGGLE__";
-    const ToggleOn = withToggle(({children, on}) => {
+    const ToggleOn = withToggle(({children, toggle:{on}}) => {
       return on ? children : null
     });
-    const ToggleOff = withToggle(({children, on}) => {
+    const ToggleOff = withToggle(({children, toggle: {on}}) => {
       return on ? null : children
     });
-    const ToggleButton = withToggle(({on, toggle, ...props}) => {
+    const ToggleButton = withToggle(({toggle:{on, toggle}, ...props}) => {
       return (
         <Switch
             on={on}
@@ -133,7 +133,7 @@
       function Wrapper(props, context) {
         const toggleContext = context[TOGGLE_CONTEXT];
         return (
-          <Component {...toggleContext} {...props} />
+          <Component {...props} toggle={toggleContext} />
         );
       }
       Wrapper.contextTypes = {
@@ -141,11 +141,19 @@
       };
       return Wrapper;
     }
-    const MyToggle = withToggle(({on, toggle}) => (
+
+    const MyToggle = withToggle(({toggle: {on, toggle}}) => (
       <button onClick={toggle}>
         {on ? 'on' : 'off'}
       </button>
     ));
+
+    const MyEventComponent = withToggle(({toggle, on, event}) => {
+      const props = {[event]: on};
+      return (
+        toggle.on ? <button {...props}>The {event} event</button> : null
+      );
+    });
     function App() {
       return (
         <Toggle
@@ -158,6 +166,11 @@
           <Toggle.Button />
           <hr/>
           <MyToggle />
+          <hr/>
+          <MyEventComponent
+            event="onClick"
+            on={e => alert(e.type)}
+          />
         </Toggle>
       )
     }
